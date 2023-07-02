@@ -11,21 +11,24 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
-    
+
     private bool m_Started = false;
     private int m_Points;
-    
+
     private bool m_GameOver = false;
 
-    
     // Start is called before the first frame update
     void Start()
     {
+        ScoreText.text = $"Player:{GetCurruntPlayer()} \nScore : 0";
+        ShowBestScoreText(GetHighScore(), GetBestPlayer());
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -55,6 +58,8 @@ public class MainManager : MonoBehaviour
         }
         else if (m_GameOver)
         {
+            PersistanceManager.Instance.SetBest(m_Points, GetCurruntPlayer()); // save best
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -65,12 +70,38 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"Player:{GetCurruntPlayer()} \nScore : {m_Points}";
     }
 
     public void GameOver()
     {
+        PersistanceManager.Instance.SavePlayer(m_Points, GetCurruntPlayer());
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    void ShowBestScoreText(int points, string name)
+    {
+        BestScoreText.text = $"Best Score: {points} \nName: {name} ";
+    }
+
+    public void BackBtnClick()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    string GetCurruntPlayer()
+    {
+        return PersistanceManager.Instance.CurruntPlayer;
+    }
+
+    string GetBestPlayer()
+    {
+        return PersistanceManager.Instance.BestPlayer;
+    }
+
+    int GetHighScore()
+    {
+        return PersistanceManager.Instance.HighScore;
     }
 }
